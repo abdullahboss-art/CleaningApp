@@ -37,7 +37,7 @@ import 'package:flutter/material.dart';
 
 import 'app_data.dart';
 import 'firebase_options.dart';
-import 'splash.dart';
+import 'Splash.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
