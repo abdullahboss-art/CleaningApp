@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "248221498419",
+    "project_id": "cleaning-2ca42",
+    "storage_bucket": "cleaning-2ca42.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:248221498419:android:d86d793e0bdfa98d26b746",
+        "android_client_info": {
+          "package_name": "cleaning.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "248221498419-73ak2v194schnjhk0g7s5h27bvmhekgi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJn6joWM6O3vwcAJCpe03Ufb2e1eyi0s0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "248221498419-73ak2v194schnjhk0g7s5h27bvmhekgi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
