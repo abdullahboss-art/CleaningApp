@@ -7,7 +7,6 @@ import 'app_settings_page.dart';
 import 'help_support_page.dart';
 import 'my_bookings_page.dart';
 import 'notifications_page.dart';
-import 'payments_page.dart';
 
 // ---------------------------------------------------------------------------
 //  DARK THEME COLORS
@@ -152,17 +151,6 @@ class ProfilePage extends StatelessWidget {
                                   MaterialPageRoute(
                                     builder: (_) => const MyBookingsPage(
                                         showBack: true, initialTab: 0),
-                                  ),
-                                ),
-                              ),
-                              _divider(),
-                              _tile(
-                                icon: Icons.account_balance_wallet_rounded,
-                                title: 'Payment Methods',
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const PaymentsPage(),
                                   ),
                                 ),
                               ),
