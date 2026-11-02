@@ -777,6 +777,20 @@ class _BookingTile extends StatelessWidget {
                   b.date,
                   style: const TextStyle(color: _hint, fontSize: 12),
                 ),
+                if (b.customerPhone.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(Icons.phone_outlined,
+                          size: 12.5, color: _hint),
+                      const SizedBox(width: 4),
+                      Text(
+                        b.customerPhone,
+                        style: const TextStyle(color: _hint, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
