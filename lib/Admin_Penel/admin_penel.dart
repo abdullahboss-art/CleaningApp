@@ -25,19 +25,22 @@ class _AdminHomePageState extends State<AdminHomePage> {
   static const _red = Color(0xFFFF4D4F);
   static const _blue = Color(0xFF4DA3FF);
 
-  // SAB users ki bookings, Firestore se live (pehle sirf local list thi)
+  // SAB users ki bookings, Firestore se live
   late final Stream<List<Booking>> _stream = BookingStore.allStream();
 
-  void _open(String filter, [Booking? booking]) =>
-      widget.onOpenBookings?.call(filter, booking);
+  void _open(String filter, [Booking? booking]) {
+    if (widget.onOpenBookings == null) {
+      debugPrint('onOpenBookings null hai - shell me AdminHomePage ko pass karo!');
+      return;
+    }
+    widget.onOpenBookings!.call(filter, booking);
+  }
 
   // ---------------- profile + logout ----------------
   Future<void> _logout() async {
     final nav = Navigator.of(context);
-    // Agar push_service.dart lagayi hai to ye line chalu karo (is phone par
-    // admin ki push band karne ke liye):
+    // Agar push_service.dart lagayi hai to ye line chalu karo:
     // await PushService.instance.removeToken();
-    // admin session (SharedPreferences) bhi saaf + Firebase signOut
     await adminLogout();
     nav.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -55,8 +58,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           side: const BorderSide(color: _border),
         ),
         title: const Text('Logout?',
-            style: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w800)),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
         content: const Text('Aap admin panel se logout ho jayenge.',
             style: TextStyle(color: _muted)),
         actions: [
@@ -67,8 +69,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Logout',
-                style:
-                    TextStyle(color: _red, fontWeight: FontWeight.w800)),
+                style: TextStyle(color: _red, fontWeight: FontWeight.w800)),
           ),
         ],
       ),
@@ -234,71 +235,75 @@ class _AdminHomePageState extends State<AdminHomePage> {
   // ---------------- booking tile (tap -> that booking) ----------------
   Widget _bookingTile(Booking b) {
     final c = _statusColor(_labelOf(b));
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      // Booking par tap: Bookings tab khulta hai, usi booking ki category
-      // (Pending/Confirmed/Completed/Cancelled) ka filter lagta hai aur wo
-      // booking highlight hoti hai
-      onTap: () => _open(_labelOf(b), b),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: _card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _border),
-        ),
-        child: Row(
-          children: [
-            ClipOval(
-              child: Image.asset(
-                b.image,
-                width: 46,
-                height: 46,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+    return Material(
+      color: _card,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        // Tap: Bookings tab khulta hai, usi booking ki category ka filter
+        // lagta hai aur wo booking highlight hoti hai
+        onTap: () => _open(_labelOf(b), b),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _border),
+          ),
+          child: Row(
+            children: [
+              ClipOval(
+                child: Image.asset(
+                  b.image,
                   width: 46,
                   height: 46,
-                  color: const Color(0xFF1B2742),
-                  child: const Icon(Icons.cleaning_services_rounded,
-                      color: _purple, size: 22),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 46,
+                    height: 46,
+                    color: const Color(0xFF1B2742),
+                    child: const Icon(Icons.cleaning_services_rounded,
+                        color: _purple, size: 22),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(b.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 2),
-                  Text(b.package,
-                      style: const TextStyle(color: _blue, fontSize: 12)),
-                  const SizedBox(height: 2),
-                  Text(b.date,
-                      style: const TextStyle(color: _muted, fontSize: 11)),
-                ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(b.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text(b.package,
+                        style: const TextStyle(color: _blue, fontSize: 12)),
+                    const SizedBox(height: 2),
+                    Text(b.date,
+                        style: const TextStyle(color: _muted, fontSize: 11)),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-              decoration: BoxDecoration(
-                color: c.withAlpha(30),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: c.withAlpha(120)),
+              const SizedBox(width: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: c.withAlpha(30),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: c.withAlpha(120)),
+                ),
+                child: Text(_labelOf(b),
+                    style: TextStyle(
+                        color: c, fontSize: 11, fontWeight: FontWeight.w700)),
               ),
-              child: Text(_labelOf(b),
-                  style: TextStyle(
-                      color: c, fontSize: 11, fontWeight: FontWeight.w700)),
-            ),
-          ],
+              const SizedBox(width: 4),
+              const Icon(Icons.chevron_right_rounded, color: _muted, size: 20),
+            ],
+          ),
         ),
       ),
     );
@@ -376,8 +381,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
                 // ---- summary banner ----
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
                     color: _card,
                     borderRadius: BorderRadius.circular(14),
@@ -390,8 +395,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       const SizedBox(width: 10),
                       const Expanded(
                         child: Text('All bookings from the user panel',
-                            style: TextStyle(
-                                color: Colors.white, fontSize: 13)),
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 13)),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -471,12 +476,30 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 ),
                 const SizedBox(height: 22),
 
-                // ---- recent bookings (all) ----
-                const Text('Recent Bookings',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800)),
+                // ---- recent bookings header + View All ----
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text('Recent Bookings',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800)),
+                    ),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _open('All'),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4),
+                        child: Text('View All',
+                            style: TextStyle(
+                                color: _purple,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 12),
 
                 if (all.isEmpty)
@@ -512,8 +535,6 @@ String _nameOf(User? u) {
 
 // ---------------------------------------------------------------------------
 //  ADMIN AVATAR (Google ki photo, na aaye to naam ka pehla harf)
-//  Neeche harf hota hai, uske upar photo aati hai (isliye load hone tak ya
-//  fail hone par harf hi dikhta hai).
 // ---------------------------------------------------------------------------
 class _AdminAvatar extends StatelessWidget {
   const _AdminAvatar({required this.user, this.radius = 24});
@@ -589,8 +610,7 @@ class _AdminAvatar extends StatelessWidget {
                   photo,
                   key: ValueKey(photo),
                   fit: BoxFit.cover,
-                  // Flutter web par Google photo CORS se fail hoti hai:
-                  // <img> tag se load karo (Flutter 3.22+)
+                  // Flutter web par Google photo CORS se fail hoti hai
                   webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 ),
