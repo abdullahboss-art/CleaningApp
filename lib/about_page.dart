@@ -93,9 +93,9 @@ class AboutPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(30),
                             border: Border.all(color: _border),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Version $kAppVersion',
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: _accent,
                               fontSize: 12.5,
                               fontWeight: FontWeight.w700,
@@ -106,8 +106,8 @@ class AboutPage extends StatelessWidget {
 
                         // Who we are
                         const _SectionTitle('Who We Are'),
-                        _InfoCard(
-                          child: const Text(
+                        const _InfoCard(
+                          child: Text(
                             'SparkClean apartment residents ke liye bani ek '
                             'easy cleaning booking app hai. Bas service chuno, '
                             'date aur time select karo, package pasand karo '
@@ -129,10 +129,10 @@ class AboutPage extends StatelessWidget {
 
                         // Why SparkClean
                         const _SectionTitle('Why SparkClean'),
-                        _InfoCard(
+                        const _InfoCard(
                           padding: EdgeInsets.zero,
                           child: Column(
-                            children: const [
+                            children: [
                               _Feature(
                                 icon: Icons.verified_user_rounded,
                                 title: 'Trusted Professionals',
@@ -216,9 +216,9 @@ class _Logo extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(
+      child: const Stack(
         alignment: Alignment.center,
-        children: const [
+        children: [
           Icon(Icons.home_rounded, color: Colors.white, size: 54),
           Positioned(
             top: 14,
