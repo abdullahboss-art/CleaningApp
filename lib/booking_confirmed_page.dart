@@ -49,6 +49,9 @@ class BookingConfirmedPage extends StatefulWidget {
 
 class _BookingConfirmedPageState extends State<BookingConfirmedPage>
     with SingleTickerProviderStateMixin {
+  // Booking Details page me user ne jo 11 digit number likha
+  final String _phone = BookingPhone.value;
+
   late final String _id =
       'SC-${(DateTime.now().millisecondsSinceEpoch % 100000).toString().padLeft(5, '0')}';
 
@@ -138,7 +141,7 @@ class _BookingConfirmedPageState extends State<BookingConfirmedPage>
         customerId: u?.uid ?? '',
         customerName: userNameOf(u),
         customerEmail: u?.email ?? '',
-        customerPhone: u?.phoneNumber ?? '',
+        customerPhone: _phone.isNotEmpty ? _phone : (u?.phoneNumber ?? ''),
         customerPhoto: userPhotoOf(u) ?? '',
       ));
 
@@ -474,6 +477,7 @@ class _BookingConfirmedPageState extends State<BookingConfirmedPage>
                 _row(Icons.access_time_rounded, 'Time',
                     _fmtTime(widget.time)),
                 _row(Icons.location_on_outlined, 'Address', widget.address),
+                if (_phone.isNotEmpty) _row(Icons.phone_outlined, 'Phone', _phone),
               ],
             ),
           ),
