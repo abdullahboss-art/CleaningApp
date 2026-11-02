@@ -399,6 +399,7 @@ class _Header extends StatelessWidget {
         ? user!.displayName!.trim()
         : 'Welcome';
 
+<<<<<<< HEAD
     // DEBUG: photo kyun nahi aa rahi? Console me dekho (kaam hone ke baad hata dena)
     debugPrint('AVATAR photoURL=${user?.photoURL} | providers=' +
         (user?.providerData ?? const <UserInfo>[])
@@ -407,6 +408,10 @@ class _Header extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 14, 14, 20),
+=======
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
+>>>>>>> 552025e (Update Cleaning App)
       child: Row(
         children: [
           GestureDetector(
@@ -442,6 +447,7 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
+<<<<<<< HEAD
           Stack(
             children: [
               IconButton(
@@ -466,12 +472,17 @@ class _Header extends StatelessWidget {
               ),
             ],
           ),
+=======
+>>>>>>> 552025e (Update Cleaning App)
         ],
       ),
     );
   }
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 552025e (Update Cleaning App)
 // ---------------------------------------------------------------------------
 //  HERO BANNER
 // ---------------------------------------------------------------------------

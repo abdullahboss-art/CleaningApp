@@ -64,11 +64,19 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         body: Stack(
           fit: StackFit.expand,
           children: [
+<<<<<<< HEAD
             // Background image (na mile to dark gradient)
             Image.asset(
               _kBackgroundAsset,
               fit: BoxFit.cover,
               alignment: Alignment.bottomCenter,
+=======
+            // Background image (saaf, bina blur ke). Na mile to dark gradient
+            Image.asset(
+              _kBackgroundAsset,
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+>>>>>>> 552025e (Update Cleaning App)
               errorBuilder: (context, error, stackTrace) => Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -80,13 +88,19 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               ),
             ),
 
+<<<<<<< HEAD
             // Dark navy overlay (neeche ka hissa zyada gehra, button saaf dikhe)
+=======
+            // Halka shade: sirf upar (text ke liye) aur neeche (button ke liye).
+            // Beech ka hissa bilkul clear rehta hai.
+>>>>>>> 552025e (Update Cleaning App)
             DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
+<<<<<<< HEAD
                     _bgTop.withAlpha(225),
                     _bgTop.withAlpha(110),
                     _bgBottom.withAlpha(170),
@@ -107,6 +121,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     _purple.withAlpha(75),
                     Colors.transparent,
                   ],
+=======
+                    _bgTop.withAlpha(170),
+                    _bgTop.withAlpha(40),
+                    Colors.transparent,
+                    _bgBottom.withAlpha(60),
+                    _bgBottom.withAlpha(190),
+                  ],
+                  stops: const [0.0, 0.25, 0.5, 0.78, 1.0],
+>>>>>>> 552025e (Update Cleaning App)
                 ),
               ),
             ),
@@ -144,9 +167,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                           shape: BoxShape.circle,
                                           boxShadow: [
                                             BoxShadow(
+<<<<<<< HEAD
                                               color: _purple.withAlpha(110),
                                               blurRadius: 44,
                                               spreadRadius: 2,
+=======
+                                              color: _purple.withAlpha(90),
+                                              blurRadius: 36,
+                                              spreadRadius: 1,
+>>>>>>> 552025e (Update Cleaning App)
                                             ),
                                           ],
                                         ),
@@ -166,7 +195,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       ),
                                       const SizedBox(height: 16),
 
+<<<<<<< HEAD
                                       // Title
+=======
+                                      // Title (shadow se image par saaf parha jaye)
+>>>>>>> 552025e (Update Cleaning App)
                                       Text(
                                         'SparkClean',
                                         style: TextStyle(
@@ -174,6 +207,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                           fontSize: title,
                                           fontWeight: FontWeight.w800,
                                           letterSpacing: 0.5,
+<<<<<<< HEAD
+=======
+                                          shadows: const [
+                                            Shadow(
+                                              color: Colors.black45,
+                                              blurRadius: 12,
+                                            ),
+                                          ],
+>>>>>>> 552025e (Update Cleaning App)
                                         ),
                                       ),
                                       const SizedBox(height: 8),
@@ -183,10 +225,23 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                         'Clean Homes. Brighter Living.',
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
+<<<<<<< HEAD
                                           color: Colors.white.withAlpha(215),
                                           fontSize: 15,
                                           fontWeight: FontWeight.w500,
                                           letterSpacing: 0.3,
+=======
+                                          color: Colors.white.withAlpha(235),
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                          letterSpacing: 0.3,
+                                          shadows: const [
+                                            Shadow(
+                                              color: Colors.black45,
+                                              blurRadius: 10,
+                                            ),
+                                          ],
+>>>>>>> 552025e (Update Cleaning App)
                                         ),
                                       ),
 

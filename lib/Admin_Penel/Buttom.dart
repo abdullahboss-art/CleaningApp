@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import 'package:cleaning/Admin_Penel/Admin%20reports%20page.dart';
+>>>>>>> 552025e (Update Cleaning App)
 import 'package:cleaning/Admin_Penel/admin_bookings.dart';
 import 'package:cleaning/Admin_Penel/admin_customers.dart';
 import 'package:cleaning/Admin_Penel/admin_penel.dart';
@@ -19,7 +23,11 @@ class _HomeShellState extends State<HomeShell> {
   const AdminHomePage(),
   const AdminBookingsPage(),
   const AdminCustomersPage(),
+<<<<<<< HEAD
   // const _MorePage(),
+=======
+  const AdminReportsPage(),
+>>>>>>> 552025e (Update Cleaning App)
 ];
 
   @override

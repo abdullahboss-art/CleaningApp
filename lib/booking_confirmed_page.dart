@@ -1,5 +1,9 @@
 import 'dart:math';
 
+<<<<<<< HEAD
+=======
+import 'package:audioplayers/audioplayers.dart';
+>>>>>>> 552025e (Update Cleaning App)
 import 'package:cleaning/app_data.dart'; // Booking, BookingStore, NotificationStore
 import 'package:cleaning/common.dart'; // fmtDate
 import 'package:cleaning/my_bookings_page.dart'; // <-- apni MyBookingsPage file ka sahi path likho
@@ -51,6 +55,24 @@ class _BookingConfirmedPageState extends State<BookingConfirmedPage>
   late final String _id =
       'SC-${(DateTime.now().millisecondsSinceEpoch % 100000).toString().padLeft(5, '0')}';
 
+<<<<<<< HEAD
+=======
+  // ---------------- sound ----------------
+  final AudioPlayer _player = AudioPlayer();
+
+  Future<void> _playSuccess() async {
+    try {
+      HapticFeedback.mediumImpact(); // halki vibration
+      await _player.setVolume(0.7);
+      // file: assets/images/success.mp3  ('assets/' likhna nahi hota)
+      await _player.play(AssetSource('images/success.mp3'));
+    } catch (_) {
+      // sound na chale to bhi page normal chalega
+      SystemSound.play(SystemSoundType.click);
+    }
+  }
+
+>>>>>>> 552025e (Update Cleaning App)
   // ---------------- animations ----------------
   late final AnimationController _ctrl = AnimationController(
     vsync: this,
@@ -101,6 +123,14 @@ class _BookingConfirmedPageState extends State<BookingConfirmedPage>
     super.initState();
     _ctrl.forward();
 
+<<<<<<< HEAD
+=======
+    // tick pop hone ke saath hi sound (thora sa delay taake animation se match kare)
+    Future.delayed(const Duration(milliseconds: 250), () {
+      if (mounted) _playSuccess();
+    });
+
+>>>>>>> 552025e (Update Cleaning App)
     // build ke baad ek hi baar: booking save + notification
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // booking karne wale user ka data (Admin > Customers me dikhega)
@@ -135,6 +165,10 @@ class _BookingConfirmedPageState extends State<BookingConfirmedPage>
 
   @override
   void dispose() {
+<<<<<<< HEAD
+=======
+    _player.dispose();
+>>>>>>> 552025e (Update Cleaning App)
     _ctrl.dispose();
     super.dispose();
   }
@@ -158,6 +192,7 @@ class _BookingConfirmedPageState extends State<BookingConfirmedPage>
         value: SystemUiOverlayStyle.light,
         child: Scaffold(
           backgroundColor: _bg,
+<<<<<<< HEAD
           body: Stack(
             children: [
               // ---- top gradient ----
@@ -226,12 +261,190 @@ class _BookingConfirmedPageState extends State<BookingConfirmedPage>
                                 ),
                                 child: const Icon(Icons.check_rounded,
                                     color: Colors.white, size: 48),
+=======
+          body: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                // ---- SAB kuch ek saath scroll hoga (tick + title + card) ----
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        // top gradient ab scroll ke saath hi upar jayega
+                        Container(
+                          width: double.infinity,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [_top, _bg],
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 10),
+                              SizedBox(
+                                width: 160,
+                                height: 160,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    AnimatedBuilder(
+                                      animation: _sparkle,
+                                      builder: (_, __) => CustomPaint(
+                                        size: const Size(160, 160),
+                                        painter:
+                                            _SparklePainter(_sparkle.value),
+                                      ),
+                                    ),
+                                    TweenAnimationBuilder<double>(
+                                      tween: Tween(begin: 0, end: 1),
+                                      duration:
+                                          const Duration(milliseconds: 700),
+                                      curve: Curves.easeOutBack,
+                                      builder: (_, v, child) =>
+                                          Transform.scale(
+                                              scale: v, child: child),
+                                      child: Container(
+                                        width: 98,
+                                        height: 98,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: _green.withAlpha(40),
+                                        ),
+                                        child: Container(
+                                          width: 76,
+                                          height: 76,
+                                          decoration: BoxDecoration(
+                                            color: _green,
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: _green.withAlpha(110),
+                                                blurRadius: 18,
+                                                offset: const Offset(0, 8),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(
+                                              Icons.check_rounded,
+                                              color: Colors.white,
+                                              size: 48),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Booking Confirmed!',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Your cleaning service has been\nsuccessfully booked.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 13.5,
+                                    height: 1.4,
+                                    color: Colors.white70),
+                              ),
+                              const SizedBox(height: 20),
+                            ],
+                          ),
+                        ),
+
+                        // ---- card + note ----
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                          child: SlideTransition(
+                            position: _cardSlide,
+                            child: FadeTransition(
+                              opacity: _cardFade,
+                              child: Column(
+                                children: [
+                                  _ticketCard(),
+                                  const SizedBox(height: 14),
+                                  _note(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ---- buttons: neeche fixed ----
+                SlideTransition(
+                  position: _btnSlide,
+                  child: FadeTransition(
+                    opacity: _btnFade,
+                    child: Container(
+                      padding: EdgeInsets.fromLTRB(20, 12, 20,
+                          14 + MediaQuery.of(context).padding.bottom),
+                      decoration: const BoxDecoration(
+                        color: _bg,
+                        border: Border(top: BorderSide(color: _line)),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            height: 54,
+                            child: ElevatedButton.icon(
+                              onPressed: _openBookings,
+                              icon: const Icon(Icons.receipt_long_rounded,
+                                  size: 22),
+                              label: const Text('View Booking',
+                                  style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _primary,
+                                foregroundColor: Colors.white,
+                                elevation: 6,
+                                shadowColor: _primary.withAlpha(100),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: OutlinedButton.icon(
+                              onPressed: _goHome,
+                              icon: const Icon(Icons.home_rounded, size: 22),
+                              label: const Text('Back to Home',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700)),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: _accent,
+                                side: const BorderSide(
+                                    color: _primary, width: 1.4),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16)),
+>>>>>>> 552025e (Update Cleaning App)
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
+<<<<<<< HEAD
                     const SizedBox(height: 6),
                     const Text(
                       'Booking Confirmed!',
@@ -332,6 +545,12 @@ class _BookingConfirmedPageState extends State<BookingConfirmedPage>
                 ),
               ),
             ],
+=======
+                  ),
+                ),
+              ],
+            ),
+>>>>>>> 552025e (Update Cleaning App)
           ),
         ),
       ),

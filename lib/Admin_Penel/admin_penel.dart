@@ -1,4 +1,10 @@
 import 'package:cleaning/app_data.dart';
+<<<<<<< HEAD
+=======
+import 'admin_config.dart'; // adminLogout(), adminLoginEmail (folder alag ho to path badlo)
+import 'package:cleaning/login_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+>>>>>>> 552025e (Update Cleaning App)
 import 'package:flutter/material.dart';
 
 class AdminHomePage extends StatefulWidget {
@@ -22,12 +28,148 @@ class _AdminHomePageState extends State<AdminHomePage> {
   static const _red = Color(0xFFFF4D4F);
   static const _blue = Color(0xFF4DA3FF);
 
+<<<<<<< HEAD
   void _open(String filter, [Booking? booking]) =>
       widget.onOpenBookings?.call(filter, booking);
 
   Color _statusColor(String s) {
     switch (s) {
       case 'Completed':
+=======
+  // SAB users ki bookings, Firestore se live (pehle sirf local list thi)
+  late final Stream<List<Booking>> _stream = BookingStore.allStream();
+
+  void _open(String filter, [Booking? booking]) =>
+      widget.onOpenBookings?.call(filter, booking);
+
+  // ---------------- profile + logout ----------------
+  Future<void> _logout() async {
+    final nav = Navigator.of(context);
+    // Agar push_service.dart lagayi hai to ye line chalu karo (is phone par
+    // admin ki push band karne ke liye):
+    // await PushService.instance.removeToken();
+    // admin session (SharedPreferences) bhi saaf + Firebase signOut
+    await adminLogout();
+    nav.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (_) => false,
+    );
+  }
+
+  Future<void> _confirmLogout() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _card,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: _border),
+        ),
+        title: const Text('Logout?',
+            style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w800)),
+        content: const Text('Aap admin panel se logout ho jayenge.',
+            style: TextStyle(color: _muted)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel', style: TextStyle(color: _muted)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Logout',
+                style:
+                    TextStyle(color: _red, fontWeight: FontWeight.w800)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) await _logout();
+  }
+
+  /// Avatar par tap: admin ki profile + Logout button
+  void _showProfile() {
+    final u = FirebaseAuth.instance.currentUser;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: _card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: _border,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(height: 18),
+              _AdminAvatar(user: u, radius: 40),
+              const SizedBox(height: 12),
+              Text(_nameOf(u),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w800)),
+              const SizedBox(height: 3),
+              Text(
+                (u?.email ?? '').isNotEmpty ? u!.email! : adminLoginEmail,
+                style: const TextStyle(color: _muted, fontSize: 13),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _purple.withAlpha(40),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text('Admin',
+                    style: TextStyle(
+                        color: _purple,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800)),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    _confirmLogout();
+                  },
+                  icon: const Icon(Icons.logout_rounded, size: 20),
+                  label: const Text('Logout',
+                      style: TextStyle(fontWeight: FontWeight.w800)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _red,
+                    side: const BorderSide(color: _red, width: 1.4),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _statusColor(String s) {
+    switch (s) {
+      case 'Completed':
+      case 'Confirmed':
+>>>>>>> 552025e (Update Cleaning App)
         return _green;
       case 'Cancelled':
         return _red;
@@ -36,7 +178,15 @@ class _AdminHomePageState extends State<AdminHomePage> {
     }
   }
 
+<<<<<<< HEAD
   String _statusLabel(String s) => s == 'Upcoming' ? 'Pending' : s;
+=======
+  String _labelOf(Booking b) {
+    if (b.status == 'Completed') return 'Completed';
+    if (b.status == 'Cancelled') return 'Cancelled';
+    return b.confirmed ? 'Confirmed' : 'Pending';
+  }
+>>>>>>> 552025e (Update Cleaning App)
 
   String _pct(int part, int total) =>
       total == 0 ? '0%' : '${(part * 100 / total).round()}%';
@@ -99,10 +249,20 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
   // ---------------- booking tile (tap -> that booking) ----------------
   Widget _bookingTile(Booking b) {
+<<<<<<< HEAD
     final c = _statusColor(b.status);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => _open('All', b),
+=======
+    final c = _statusColor(_labelOf(b));
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      // Booking par tap: Bookings tab khulta hai, usi booking ki category
+      // (Pending/Confirmed/Completed/Cancelled) ka filter lagta hai aur wo
+      // booking highlight hoti hai
+      onTap: () => _open(_labelOf(b), b),
+>>>>>>> 552025e (Update Cleaning App)
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -157,7 +317,11 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: c.withAlpha(120)),
               ),
+<<<<<<< HEAD
               child: Text(_statusLabel(b.status),
+=======
+              child: Text(_labelOf(b),
+>>>>>>> 552025e (Update Cleaning App)
                   style: TextStyle(
                       color: c, fontSize: 11, fontWeight: FontWeight.w700)),
             ),
@@ -169,6 +333,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     return Scaffold(
       backgroundColor: _bg,
       body: SafeArea(
@@ -178,12 +343,47 @@ class _AdminHomePageState extends State<AdminHomePage> {
             int count(String s) => all.where((b) => b.status == s).length;
             final total = all.length;
             final pending = count('Upcoming');
+=======
+    // Admin ki apni profile (login wale account se)
+    final admin = FirebaseAuth.instance.currentUser;
+    final adminName = _nameOf(admin);
+
+    return Scaffold(
+      backgroundColor: _bg,
+      body: SafeArea(
+        child: StreamBuilder<List<Booking>>(
+          stream: _stream,
+          builder: (context, snap) {
+            if (snap.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    'Firestore se bookings nahi aa rahi.\nRules check karo.\n\n${snap.error}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: _muted, fontSize: 12.5),
+                  ),
+                ),
+              );
+            }
+            if (!snap.hasData) {
+              return const Center(
+                  child: CircularProgressIndicator(color: _purple));
+            }
+            final all = snap.data!;
+            int count(String s) => all.where((b) => b.status == s).length;
+            final total = all.length;
+            // Pending = jo abhi admin ne confirm nahi ki
+            final pending =
+                all.where((b) => b.status == 'Upcoming' && !b.confirmed).length;
+>>>>>>> 552025e (Update Cleaning App)
             final done = count('Completed');
             final cancelled = count('Cancelled');
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               children: [
+<<<<<<< HEAD
                 // ---- top bar ----
                 Row(
                   children: [
@@ -209,6 +409,33 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       tooltip: 'Search bookings',
                       icon: const Icon(Icons.search_rounded,
                           color: Colors.white),
+=======
+                // ---- top bar: admin ki profile ----
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: _showProfile,
+                      child: _AdminAvatar(user: admin, radius: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Dashboard',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800)),
+                          const SizedBox(height: 2),
+                          Text('Welcome, $adminName',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  color: _muted, fontSize: 12.5)),
+                        ],
+                      ),
+>>>>>>> 552025e (Update Cleaning App)
                     ),
                   ],
                 ),
@@ -328,7 +555,11 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     ),
                   )
                 else
+<<<<<<< HEAD
                   ...all.map((b) => Padding(
+=======
+                  ...all.take(10).map((b) => Padding(
+>>>>>>> 552025e (Update Cleaning App)
                         padding: const EdgeInsets.only(bottom: 10),
                         child: _bookingTile(b),
                       )),
@@ -339,4 +570,108 @@ class _AdminHomePageState extends State<AdminHomePage> {
       ),
     );
   }
+<<<<<<< HEAD
+=======
+}
+
+/// Login wale admin ka naam (displayName, warna email ka pehla hissa)
+String _nameOf(User? u) {
+  final n = u?.displayName?.trim();
+  if (n != null && n.isNotEmpty) return n;
+  final e = u?.email;
+  if (e != null && e.contains('@')) return e.split('@').first;
+  return 'Admin';
+}
+
+// ---------------------------------------------------------------------------
+//  ADMIN AVATAR (Google ki photo, na aaye to naam ka pehla harf)
+//  Neeche harf hota hai, uske upar photo aati hai (isliye load hone tak ya
+//  fail hone par harf hi dikhta hai).
+// ---------------------------------------------------------------------------
+class _AdminAvatar extends StatelessWidget {
+  const _AdminAvatar({required this.user, this.radius = 24});
+
+  final User? user;
+  final double radius;
+
+  static const _purple = Color(0xFF8B5CF6);
+  static const _soft = Color(0xFF2A2360);
+
+  String get _photo {
+    var url = user?.photoURL;
+    if (url == null || url.isEmpty) {
+      for (final p in user?.providerData ?? const <UserInfo>[]) {
+        if (p.photoURL != null && p.photoURL!.isNotEmpty) {
+          url = p.photoURL;
+          break;
+        }
+      }
+    }
+    if (url == null || !url.startsWith('http')) return '';
+    return url.replaceAll(RegExp(r'=s\d+-c'), '=s200-c');
+  }
+
+  String get _initial {
+    final n = _nameOf(user).trim();
+    return n.isEmpty ? 'A' : n[0].toUpperCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final inner = radius * 2 - 4; // 2px ring
+    final photo = _photo;
+
+    final letter = Container(
+      width: inner,
+      height: inner,
+      alignment: Alignment.center,
+      color: _soft,
+      child: Text(
+        _initial,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: radius * 0.85,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: const BoxDecoration(color: _purple, shape: BoxShape.circle),
+      child: ClipOval(
+        child: SizedBox(
+          width: inner,
+          height: inner,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              letter,
+              // photo nahi (admin@gmail.com / password login) -> app ka logo
+              if (photo.isEmpty)
+                Padding(
+                  padding: EdgeInsets.all(radius * 0.22),
+                  child: Image.asset(
+                    'assets/images/Logo.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                ),
+              if (photo.isNotEmpty)
+                Image.network(
+                  photo,
+                  key: ValueKey(photo),
+                  fit: BoxFit.cover,
+                  // Flutter web par Google photo CORS se fail hoti hai:
+                  // <img> tag se load karo (Flutter 3.22+)
+                  webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+>>>>>>> 552025e (Update Cleaning App)
 }

@@ -18,21 +18,71 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="SparkClean - Easy cleaning service booking.">
+  <meta name="theme-color" content="#0D0A22">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="cleaning">
+  <meta name="apple-mobile-web-app-title" content="SparkClean">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <!-- Favicon (browser tab me aapka logo). Flutter web me asset ka URL assets/ + asset path hota hai -->
+  <link rel="icon" type="image/png" href="assets/assets/images/Logo.png"/>
 
-  <title>cleaning</title>
+  <title>SparkClean</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Loading screen: Flutter load hone tak logo dikhta hai -->
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #0D0A22;
+    }
+    #splash {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      background: linear-gradient(180deg, #241A5E 0%, #0D0A22 70%);
+      transition: opacity .5s ease;
+    }
+    #splash.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #splash img {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      animation: pop .9s ease-out both;
+    }
+    #splash .spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid rgba(155, 125, 255, .25);
+      border-top-color: #9B7DFF;
+      border-radius: 50%;
+      animation: spin .9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pop {
+      0%   { transform: scale(.6); opacity: 0; }
+      100% { transform: scale(1);  opacity: 1; }
+    }
+  </style>
 </head>
 <body>
+  <div id="splash">
+    <img src="assets/assets/images/Logo.png" alt="SparkClean">
+    <div class="spinner"></div>
+  </div>
+
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader
@@ -42,5 +92,18 @@
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
   <script src="flutter_bootstrap.js" async></script>
+
+  <script>
+    // Flutter ka pehla frame aate hi loading screen hata do
+    function hideSplash() {
+      var s = document.getElementById('splash');
+      if (!s) return;
+      s.classList.add('hide');
+      setTimeout(function () { s.remove(); }, 600);
+    }
+    window.addEventListener('flutter-first-frame', hideSplash);
+    // agar kisi wajah se event na aaye to 15 second baad khud hat jaye
+    setTimeout(hideSplash, 15000);
+  </script>
 </body>
 </html>

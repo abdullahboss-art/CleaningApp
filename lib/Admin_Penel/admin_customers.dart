@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // import 'package:cleaning/app_data.dart';
 // import 'package:flutter/material.dart';
 
@@ -753,6 +754,10 @@
 // }
 
 import 'package:cleaning/app_data.dart';
+=======
+import 'package:cleaning/app_data.dart';
+import 'package:flutter/foundation.dart';
+>>>>>>> 552025e (Update Cleaning App)
 import 'package:flutter/material.dart';
 
 const Color _bg = Color(0xFF0B0B18);
@@ -787,6 +792,18 @@ Color _statusColor(String s) {
   }
 }
 
+<<<<<<< HEAD
+=======
+/// Photo URL ko saaf karta hai. Khali / ghalat ho to '' return karta hai.
+/// Google ki chhoti photo (=s96-c) ko bari (=s256-c) bana deta hai.
+String _cleanPhoto(String raw) {
+  final p = raw.trim();
+  if (p.isEmpty) return '';
+  if (!p.startsWith('http')) return '';
+  return p.replaceAll(RegExp(r'=s\d+-c'), '=s256-c');
+}
+
+>>>>>>> 552025e (Update Cleaning App)
 class _Customer {
   _Customer(this.key);
 
@@ -850,7 +867,12 @@ List<_Customer> _groupCustomers(List<Booking> all) {
     if (c.name.isEmpty) c.name = b.customerName;
     if (c.email.isEmpty) c.email = b.customerEmail;
     if (c.phone.isEmpty) c.phone = b.customerPhone;
+<<<<<<< HEAD
     if (c.photo.isEmpty) c.photo = b.customerPhoto;
+=======
+    // sab bookings me se pehli non-empty photo uthao
+    if (_cleanPhoto(c.photo).isEmpty) c.photo = b.customerPhoto;
+>>>>>>> 552025e (Update Cleaning App)
     if (c.address.isEmpty) c.address = b.address;
   }
   return map.values.toList();
@@ -1011,7 +1033,13 @@ class _AdminCustomersPageState extends State<AdminCustomersPage> {
 }
 
 // ---------------------------------------------------------------------------
+<<<<<<< HEAD
 //  Avatar (Google ki asli photo purple ring ke sath, na aaye to naam ka harf)
+=======
+//  Avatar
+//  Neeche hamesha naam ka harf hota hai, uske upar photo aati hai.
+//  Photo load na ho (ya fail ho) to harf dikhta rehta hai.
+>>>>>>> 552025e (Update Cleaning App)
 // ---------------------------------------------------------------------------
 class _Avatar extends StatelessWidget {
   const _Avatar({required this.customer, this.radius = 26});
@@ -1022,6 +1050,15 @@ class _Avatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final inner = radius * 2 - 4; // 2px ring dono taraf
+<<<<<<< HEAD
+=======
+    final photo = _cleanPhoto(customer.photo);
+
+    if (kDebugMode) {
+      debugPrint(
+          'AVATAR => ${customer.displayName} | raw="${customer.photo}" | used="$photo"');
+    }
+>>>>>>> 552025e (Update Cleaning App)
 
     final letter = Container(
       width: inner,
@@ -1045,6 +1082,7 @@ class _Avatar extends StatelessWidget {
         child: SizedBox(
           width: inner,
           height: inner,
+<<<<<<< HEAD
           child: customer.photo.isEmpty
               ? letter
               : Image.network(
@@ -1054,6 +1092,33 @@ class _Avatar extends StatelessWidget {
                       progress == null ? child : letter,
                   errorBuilder: (context, error, stackTrace) => letter,
                 ),
+=======
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              letter,
+              if (photo.isNotEmpty)
+                Image.network(
+                  photo,
+                  key: ValueKey(photo),
+                  fit: BoxFit.cover,
+                  // Flutter web par Google photo CORS ki wajah se fail hoti
+                  // hai; yeh <img> tag se load karta hai (Flutter 3.22+).
+                  webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
+                  frameBuilder: (context, child, frame, sync) {
+                    if (sync || frame != null) return child;
+                    return const SizedBox.shrink();
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    if (kDebugMode) {
+                      debugPrint('AVATAR ERROR => $photo | $error');
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+            ],
+          ),
+>>>>>>> 552025e (Update Cleaning App)
         ),
       ),
     );
