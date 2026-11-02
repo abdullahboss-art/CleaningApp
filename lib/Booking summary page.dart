@@ -1,15 +1,14 @@
-import 'package:cleaning/app_data.dart'; // userPhotoOf, userNameOf
-import 'package:cleaning/auth_service.dart';
-import 'package:cleaning/booking_confirmed_page.dart'; // apni confirmed file ka naam yahan likho
+import 'dart:math';
+
+import 'package:audioplayers/audioplayers.dart';
+import 'package:cleaning/app_data.dart'; // Booking, BookingStore, NotificationStore
 import 'package:cleaning/common.dart'; // fmtDate
+import 'package:cleaning/my_bookings_page.dart'; // <-- apni MyBookingsPage file ka sahi path likho
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 const String kCurrency = 'AED';
-
-// Design wali Building / Flat Number (baad me user ke profile se aayegi)
-const String kBuilding = 'Tower A';
-const String kFlat = '1203';
 
 // ---------------------------------------------------------------------------
 //  DARK THEME COLORS (sirf is file ke liye)
@@ -21,38 +20,93 @@ const Color _line = Color(0xFF2E2763);
 const Color _soft = Color(0xFF2A2360);
 const Color _accent = Color(0xFF9B7DFF);
 const Color _primary = Color(0xFF6F4FF2);
+const Color _green = Color(0xFF3DDC84);
 const Color _sub = Colors.white60;
 
-class BookingSummaryPage extends StatefulWidget {
-  const BookingSummaryPage({
+class BookingConfirmedPage extends StatefulWidget {
+  const BookingConfirmedPage({
     super.key,
     required this.serviceTitle,
     required this.packageName,
     required this.price,
-    required this.duration,
     required this.date,
     required this.time,
-    required this.packageImage,
-    required this.accent,
-    required this.cardBg,
+    required this.image,
+    this.address = 'Tower A, Flat 1203',
   });
 
   final String serviceTitle;
   final String packageName;
   final int price;
-  final String duration;
   final DateTime date;
   final TimeOfDay time;
-  final String packageImage;
-  final Color accent;
-  final Color cardBg;
+  final String image;
+  final String address;
 
   @override
-  State<BookingSummaryPage> createState() => _BookingSummaryPageState();
+  State<BookingConfirmedPage> createState() => _BookingConfirmedPageState();
 }
 
-class _BookingSummaryPageState extends State<BookingSummaryPage> {
-  int _pay = 0; // 0 = Cash on Service, 1 = Card Payment
+class _BookingConfirmedPageState extends State<BookingConfirmedPage>
+    with SingleTickerProviderStateMixin {
+  // Booking Details page me user ne jo 11 digit number likha
+  final String _phone = BookingPhone.value;
+
+  late final String _id =
+      'SC-${(DateTime.now().millisecondsSinceEpoch % 100000).toString().padLeft(5, '0')}';
+
+  // ---------------- sound ----------------
+  final AudioPlayer _player = AudioPlayer();
+
+  Future<void> _playSuccess() async {
+    try {
+      HapticFeedback.mediumImpact(); // halki vibration
+      await _player.setVolume(0.7);
+      // file: assets/images/success.mp3  ('assets/' likhna nahi hota)
+      await _player.play(AssetSource('images/success.mp3'));
+    } catch (_) {
+      // sound na chale to bhi page normal chalega
+      SystemSound.play(SystemSoundType.click);
+    }
+  }
+
+  // ---------------- animations ----------------
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1500),
+  );
+
+  // sparkles (tick ke gird)
+  late final Animation<double> _sparkle = CurvedAnimation(
+    parent: _ctrl,
+    curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+  );
+
+  // card neeche se upar
+  late final Animation<Offset> _cardSlide = Tween<Offset>(
+    begin: const Offset(0, 1.1),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(
+    parent: _ctrl,
+    curve: const Interval(0.2, 0.75, curve: Curves.easeOutCubic),
+  ));
+  late final Animation<double> _cardFade = CurvedAnimation(
+    parent: _ctrl,
+    curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
+  );
+
+  // buttons neeche se upar
+  late final Animation<Offset> _btnSlide = Tween<Offset>(
+    begin: const Offset(0, 1.6),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(
+    parent: _ctrl,
+    curve: const Interval(0.5, 1.0, curve: Curves.easeOutCubic),
+  ));
+  late final Animation<double> _btnFade = CurvedAnimation(
+    parent: _ctrl,
+    curve: const Interval(0.5, 0.85, curve: Curves.easeOut),
+  );
 
   String _fmtTime(TimeOfDay t) {
     final h = t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod;
@@ -61,131 +115,249 @@ class _BookingSummaryPageState extends State<BookingSummaryPage> {
     return '${h.toString().padLeft(2, '0')}:$m $p';
   }
 
-  void _confirm() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BookingConfirmedPage(
-          serviceTitle: widget.serviceTitle,
-          packageName: widget.packageName,
-          price: widget.price,
-          date: widget.date,
-          time: widget.time,
-          image: widget.packageImage,
-          address: '$kBuilding, Flat $kFlat',
-        ),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _ctrl.forward();
+
+    // tick pop hone ke saath hi sound (thora sa delay taake animation se match kare)
+    Future.delayed(const Duration(milliseconds: 250), () {
+      if (mounted) _playSuccess();
+    });
+
+    // build ke baad ek hi baar: booking save + notification
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // booking karne wale user ka data (Admin > Customers me dikhega)
+      final u = FirebaseAuth.instance.currentUser;
+
+      BookingStore.add(Booking(
+        title: widget.serviceTitle,
+        image: widget.image,
+        package: widget.packageName,
+        address: widget.address,
+        date: '${fmtDate(widget.date)} • ${_fmtTime(widget.time)}',
+        price: widget.price,
+        status: 'Upcoming',
+        customerId: u?.uid ?? '',
+        customerName: userNameOf(u),
+        customerEmail: u?.email ?? '',
+        customerPhone: _phone.isNotEmpty ? _phone : (u?.phoneNumber ?? ''),
+        customerPhoto: userPhotoOf(u) ?? '',
+      ));
+
+      // Home ki bell par count aayega, Notifications page me dikhegi
+      NotificationStore.add(
+        type: 'booking',
+        key: 'confirmed|$_id', // double na aaye
+        title: 'Booking Received',
+        body: 'Your ${widget.serviceTitle} (${widget.packageName}) request is '
+            'sent for ${fmtDate(widget.date)} at ${_fmtTime(widget.time)}. '
+            'Waiting for admin confirmation.',
+      );
+    });
   }
 
   @override
+  void dispose() {
+    _player.dispose();
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  // Home (pehli screen) tak wapas, phir My Bookings kholo
+  void _openBookings() {
+    final nav = Navigator.of(context);
+    nav.popUntil((r) => r.isFirst);
+    nav.push(MaterialPageRoute(
+        builder: (_) => const MyBookingsPage(showBack: true)));
+  }
+
+  void _goHome() => Navigator.of(context).popUntil((r) => r.isFirst);
+
+  // ------------------------------ UI ------------------------------
+  @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: _bg,
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [_top, _bg],
-            ),
-          ),
-          child: SafeArea(
+    return PopScope(
+      canPop: false,
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: Scaffold(
+          backgroundColor: _bg,
+          body: SafeArea(
             bottom: false,
             child: Column(
               children: [
-                // ---- top bar ----
-                SizedBox(
-                  height: 60,
-                  child: Row(
-                    children: [
-                      IconButton(
-                        onPressed: () => Navigator.of(context).maybePop(),
-                        icon: const Icon(Icons.arrow_back_rounded,
-                            color: Colors.white, size: 26),
-                      ),
-                      const Expanded(
-                        child: Text(
-                          'Booking Details',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 19,
-                            fontWeight: FontWeight.w700,
+                // ---- SAB kuch ek saath scroll hoga (tick + title + card) ----
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        // top gradient ab scroll ke saath hi upar jayega
+                        Container(
+                          width: double.infinity,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [_top, _bg],
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 10),
+                              SizedBox(
+                                width: 160,
+                                height: 160,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    AnimatedBuilder(
+                                      animation: _sparkle,
+                                      builder: (_, __) => CustomPaint(
+                                        size: const Size(160, 160),
+                                        painter:
+                                            _SparklePainter(_sparkle.value),
+                                      ),
+                                    ),
+                                    TweenAnimationBuilder<double>(
+                                      tween: Tween(begin: 0, end: 1),
+                                      duration:
+                                          const Duration(milliseconds: 700),
+                                      curve: Curves.easeOutBack,
+                                      builder: (_, v, child) =>
+                                          Transform.scale(
+                                              scale: v, child: child),
+                                      child: Container(
+                                        width: 98,
+                                        height: 98,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: _green.withAlpha(40),
+                                        ),
+                                        child: Container(
+                                          width: 76,
+                                          height: 76,
+                                          decoration: BoxDecoration(
+                                            color: _green,
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: _green.withAlpha(110),
+                                                blurRadius: 18,
+                                                offset: const Offset(0, 8),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(
+                                              Icons.check_rounded,
+                                              color: Colors.white,
+                                              size: 48),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Booking Confirmed!',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Your cleaning service has been\nsuccessfully booked.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 13.5,
+                                    height: 1.4,
+                                    color: Colors.white70),
+                              ),
+                              const SizedBox(height: 20),
+                            ],
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 48),
-                    ],
-                  ),
-                ),
 
-                // ---- dark rounded sheet ----
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: _bg,
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(28)),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(28)),
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: SingleChildScrollView(
-                              padding:
-                                  const EdgeInsets.fromLTRB(18, 20, 18, 12),
+                        // ---- card + note ----
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                          child: SlideTransition(
+                            position: _cardSlide,
+                            child: FadeTransition(
+                              opacity: _cardFade,
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _profileCard(),
+                                  _ticketCard(),
                                   const SizedBox(height: 14),
-                                  _detailsCard(),
-                                  const SizedBox(height: 22),
-                                  const Text(
-                                    'Payment Method',
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _paymentCard(),
+                                  _note(),
                                 ],
                               ),
                             ),
                           ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
-                          // ---- Confirm Booking ----
-                          SafeArea(
-                            top: false,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(18, 8, 18, 14),
-                              child: SizedBox(
-                                width: double.infinity,
-                                height: 56,
-                                child: ElevatedButton(
-                                  onPressed: _confirm,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: _primary,
-                                    foregroundColor: Colors.white,
-                                    elevation: 6,
-                                    shadowColor: _primary.withAlpha(100),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(16)),
-                                  ),
-                                  child: const Text('Confirm Booking',
-                                      style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w700)),
-                                ),
+                // ---- buttons: neeche fixed ----
+                SlideTransition(
+                  position: _btnSlide,
+                  child: FadeTransition(
+                    opacity: _btnFade,
+                    child: Container(
+                      padding: EdgeInsets.fromLTRB(20, 12, 20,
+                          14 + MediaQuery.of(context).padding.bottom),
+                      decoration: const BoxDecoration(
+                        color: _bg,
+                        border: Border(top: BorderSide(color: _line)),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            height: 54,
+                            child: ElevatedButton.icon(
+                              onPressed: _openBookings,
+                              icon: const Icon(Icons.receipt_long_rounded,
+                                  size: 22),
+                              label: const Text('View Booking',
+                                  style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _primary,
+                                foregroundColor: Colors.white,
+                                elevation: 6,
+                                shadowColor: _primary.withAlpha(100),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: OutlinedButton.icon(
+                              onPressed: _goHome,
+                              icon: const Icon(Icons.home_rounded, size: 22),
+                              label: const Text('Back to Home',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700)),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: _accent,
+                                side: const BorderSide(
+                                    color: _primary, width: 1.4),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16)),
                               ),
                             ),
                           ),
@@ -202,250 +374,279 @@ class _BookingSummaryPageState extends State<BookingSummaryPage> {
     );
   }
 
-  // ---------------- booking karne wale user ki profile ----------------
-  Widget _profileCard() {
-    final user = AuthService.instance.currentUser;
-    final userName = userNameOf(user);
-    final name = userName.isNotEmpty ? userName : 'Guest';
-    final contact = (user?.email?.isNotEmpty ?? false)
-        ? user!.email!
-        : (user?.phoneNumber ?? '');
-    final photo = userPhotoOf(user);
-    final initial = userName.isNotEmpty
-        ? userName[0].toUpperCase()
-        : (contact.isNotEmpty ? contact[0].toUpperCase() : '?');
-
-    Widget letter() => Container(
-          color: _soft,
-          alignment: Alignment.center,
-          child: Text(
-            initial,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        );
-
+  // ---------------- ticket card ----------------
+  Widget _ticketCard() {
     return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: _cardDeco(),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(
-                color: _accent, shape: BoxShape.circle),
-            child: ClipOval(
-              child: SizedBox(
-                width: 54,
-                height: 54,
-                child: photo == null
-                    ? letter()
-                    : Image.network(
-                        photo,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, progress) =>
-                            progress == null ? child : letter(),
-                        errorBuilder: (_, e, __) => letter(),
-                      ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Booking for',
-                    style: TextStyle(fontSize: 11.5, color: _sub)),
-                const SizedBox(height: 2),
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-                if (contact.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    contact,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12.5, color: _sub),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ---------------- details card ----------------
-  Widget _detailsCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _cardDeco(),
-      child: Column(
-        children: [
-          // service + package
-          Row(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration:
-                    BoxDecoration(shape: BoxShape.circle, color: widget.cardBg),
-                child: ClipOval(
-                  child: Image.asset(
-                    widget.packageImage,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(
-                        Icons.workspace_premium_rounded,
-                        color: widget.accent,
-                        size: 30),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.serviceTitle,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      '${widget.packageName} Package',
-                      style: const TextStyle(fontSize: 13, color: _sub),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Divider(color: _line, height: 20),
-          _row(Icons.calendar_today_rounded, 'Date', fmtDate(widget.date)),
-          _row(Icons.access_time_rounded, 'Time', _fmtTime(widget.time)),
-          _row(Icons.apartment_rounded, 'Building', kBuilding),
-          _row(Icons.meeting_room_outlined, 'Flat Number', kFlat),
-          _row(Icons.timer_outlined, 'Duration', widget.duration),
-          _row(Icons.payments_outlined, 'Total Amount',
-              '$kCurrency ${widget.price}',
-              bold: true),
-        ],
-      ),
-    );
-  }
-
-  Widget _row(IconData icon, String label, String value, {bool bold = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 9),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: _accent),
-          const SizedBox(width: 12),
-          Text(label, style: const TextStyle(fontSize: 14, color: _sub)),
-          const Spacer(),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: bold ? 18 : 14,
-              fontWeight: bold ? FontWeight.w800 : FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ---------------- payment method ----------------
-  Widget _paymentCard() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      decoration: _cardDeco(),
-      child: Column(
-        children: [
-          _payTile(0, 'Cash on Service'),
-          const Divider(color: _line, height: 1),
-          _payTile(1, 'Card Payment'),
-        ],
-      ),
-    );
-  }
-
-  Widget _payTile(int i, String label) {
-    final sel = _pay == i;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => setState(() => _pay = i),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          child: Row(
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                width: 22,
-                height: 22,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _card,
-                  border: Border.all(
-                    color: sel ? _accent : Colors.white38,
-                    width: 1.8,
-                  ),
-                ),
-                child: sel
-                    ? Container(
-                        width: 11,
-                        height: 11,
-                        decoration: const BoxDecoration(
-                            color: _accent, shape: BoxShape.circle),
-                      )
-                    : null,
-              ),
-              const SizedBox(width: 14),
-              Text(label,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  )),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  BoxDecoration _cardDeco() => BoxDecoration(
+      decoration: BoxDecoration(
         color: _card,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(26),
         border: Border.all(color: _line),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(90),
-            blurRadius: 14,
-            offset: const Offset(0, 5),
+            color: Colors.black.withAlpha(110),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
           ),
         ],
+      ),
+      child: Column(
+        children: [
+          // service + package + booking id
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+            child: Row(
+              children: [
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: const BoxDecoration(
+                      shape: BoxShape.circle, color: _soft),
+                  child: ClipOval(
+                    child: Image.asset(
+                      widget.image,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(
+                          Icons.cleaning_services_rounded,
+                          color: _accent,
+                          size: 26),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.serviceTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: _soft,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${widget.packageName} Package',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: _accent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text('Booking ID',
+                        style: TextStyle(fontSize: 10.5, color: _sub)),
+                    const SizedBox(height: 2),
+                    Text('#$_id',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        )),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          _ticketDivider(),
+
+          // details
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 10, 18, 6),
+            child: Column(
+              children: [
+                _row(Icons.calendar_today_rounded, 'Date',
+                    fmtDate(widget.date)),
+                _row(Icons.access_time_rounded, 'Time',
+                    _fmtTime(widget.time)),
+                _row(Icons.location_on_outlined, 'Address', widget.address),
+                if (_phone.isNotEmpty) _row(Icons.phone_outlined, 'Phone', _phone),
+              ],
+            ),
+          ),
+
+          // total
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: _soft,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.payments_outlined,
+                      color: _accent, size: 22),
+                  const SizedBox(width: 10),
+                  const Text('Total Amount',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      )),
+                  const Spacer(),
+                  Text(
+                    '$kCurrency ${widget.price}',
+                    style: const TextStyle(
+                      fontSize: 21,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ticket jaisi dashed line, dono side notch ke saath
+  Widget _ticketDivider() {
+    Widget notch() => Container(
+          width: 24,
+          height: 24,
+          decoration: const BoxDecoration(color: _bg, shape: BoxShape.circle),
+        );
+
+    return SizedBox(
+      height: 24,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: LayoutBuilder(
+                builder: (_, box) {
+                  final n = (box.maxWidth / 10).floor();
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      for (var i = 0; i < n; i++)
+                        Container(width: 5, height: 1.6, color: _line),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+          Positioned(left: -12, top: 0, child: notch()),
+          Positioned(right: -12, top: 0, child: notch()),
+        ],
+      ),
+    );
+  }
+
+  Widget _row(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: _soft,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 18, color: _accent),
+          ),
+          const SizedBox(width: 12),
+          Text(label, style: const TextStyle(fontSize: 14, color: _sub)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------- info note ----------------
+  Widget _note() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: _card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _line),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.info_outline_rounded, size: 20, color: _accent),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Our cleaner will contact you before arriving. '
+              'You can track your booking from My Bookings.',
+              style: TextStyle(fontSize: 12.5, height: 1.35, color: _sub),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+//  Tick ke gird chhoti sparkle lines
+// ---------------------------------------------------------------------------
+class _SparklePainter extends CustomPainter {
+  _SparklePainter(this.t);
+  final double t; // 0 -> 1
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final paint = Paint()
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 3;
+
+    const count = 12;
+    for (var i = 0; i < count; i++) {
+      final a = (i / count) * 2 * pi;
+      final start = 56 + 8 * t;
+      final end = start + (i.isEven ? 13 : 8) * t;
+      paint.color = (i.isEven ? _green : _accent).withAlpha((230 * t).round());
+      canvas.drawLine(
+        c + Offset(cos(a), sin(a)) * start,
+        c + Offset(cos(a), sin(a)) * end,
+        paint,
       );
-} 
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SparklePainter old) => old.t != t;
+}
