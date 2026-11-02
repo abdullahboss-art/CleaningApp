@@ -8,9 +8,6 @@ import 'help_support_page.dart';
 import 'my_bookings_page.dart';
 import 'notifications_page.dart';
 
-// ---------------------------------------------------------------------------
-//  DARK THEME COLORS
-// ---------------------------------------------------------------------------
 const Color _bg = Color(0xFF0D0A22);
 const Color _top = Color(0xFF1A1250);
 const Color _card = Color(0xFF1A1640);
