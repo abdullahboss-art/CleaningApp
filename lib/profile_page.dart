@@ -1,9 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../common.dart';
+import 'common.dart';
+import 'about_page.dart';
+import 'app_settings_page.dart';
+import 'help_support_page.dart';
 import 'my_bookings_page.dart';
 import 'notifications_page.dart';
+import 'payments_page.dart';
 
 // ---------------------------------------------------------------------------
 //  DARK THEME COLORS
@@ -17,19 +21,12 @@ const Color _accent = Color(0xFF9B7DFF);
 const Color _primary = Color(0xFF6F4FF2);
 const Color _sub = Colors.white60;
 
-void _msg(BuildContext context, String text) {
-  final m = ScaffoldMessenger.of(context);
-  m.hideCurrentSnackBar();
-  m.showSnackBar(SnackBar(
-    content: Text(text),
-    backgroundColor: _card,
-    behavior: SnackBarBehavior.floating,
-  ));
-}
-
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
+  // Logout ke baad poora stack clear hokar seedha Login page khulta hai.
+  // rootNavigator: true isliye taake bottom-nav ke andar ka nested
+  // navigator bhi clear ho jaye.
   Future<void> _logout(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
@@ -37,7 +34,8 @@ class ProfilePage extends StatelessWidget {
       debugPrint('Logout error: $e');
     }
     if (!context.mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, Routes.login, (_) => false);
+    Navigator.of(context, rootNavigator: true)
+        .pushNamedAndRemoveUntil(Routes.login, (_) => false);
   }
 
   @override
@@ -77,8 +75,12 @@ class ProfilePage extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, Routes.settings),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AppSettingsPage(),
+                          ),
+                        ),
                         icon: const Icon(Icons.settings_rounded,
                             color: Colors.white, size: 26),
                       ),
@@ -157,15 +159,12 @@ class ProfilePage extends StatelessWidget {
                               _tile(
                                 icon: Icons.account_balance_wallet_rounded,
                                 title: 'Payment Methods',
-                                onTap: () => Navigator.pushNamed(
-                                    context, Routes.payment),
-                              ),
-                              _divider(),
-                              _tile(
-                                icon: Icons.location_on_rounded,
-                                title: 'Addresses',
-                                onTap: () =>
-                                    _msg(context, 'Addresses jald aayenge.'),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const PaymentsPage(),
+                                  ),
+                                ),
                               ),
                               _divider(),
                               _tile(
@@ -183,14 +182,23 @@ class ProfilePage extends StatelessWidget {
                               _tile(
                                 icon: Icons.help_rounded,
                                 title: 'Help & Support',
-                                onTap: () =>
-                                    _msg(context, 'Support jald aayega.'),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const HelpSupportPage(),
+                                  ),
+                                ),
                               ),
                               _divider(),
                               _tile(
                                 icon: Icons.info_rounded,
                                 title: 'About SparkClean',
-                                onTap: () => _msg(context, 'SparkClean v1.0'),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AboutPage(),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
