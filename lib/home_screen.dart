@@ -177,80 +177,78 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: _pageBg,
         drawer: _AppDrawer(onLogout: _logout),
         body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [_headerTop, _pageBg],
-            ),
-          ),
+          color: _pageBg,
           child: SafeArea(
             bottom: false,
             child: Column(
               children: [
-                _Header(
-                    onAvatarTap: () => _scaffoldKey.currentState?.openDrawer()),
+                // Header: gradient sirf yahin, neeche _pageBg me smoothly mil jata hai
+                Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [_headerTop, _pageBg],
+                    ),
+                  ),
+                  child: _Header(
+                    onAvatarTap: () => _scaffoldKey.currentState?.openDrawer(),
+                  ),
+                ),
                 Expanded(
                   child: Container(
                     width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: _pageBg,
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(28)),
-                    ),
-                    child: ClipRRect(
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(28)),
-                      child: SingleChildScrollView(
-                        // neeche extra padding: apna bottom nav isi ke upar aayega
-                        padding: const EdgeInsets.fromLTRB(18, 20, 18, 32),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _HeroBanner(
-                              height: bannerH,
-                              onTap: () =>
-                                  _openBooking(context, _categories.first),
+                    color: _pageBg, // radius hata diya, flat body
+                    child: SingleChildScrollView(
+                      // neeche extra padding: apna bottom nav isi ke upar aayega
+                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 32),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _HeroBanner(
+                            height: bannerH,
+                            onTap: () =>
+                                _openBooking(context, _categories.first),
+                          ),
+                          const SizedBox(height: 26),
+                          const Text(
+                            'Our Services',
+                            style: TextStyle(
+                              fontSize: 21,
+                              fontWeight: FontWeight.w800,
+                              color: _textColor,
                             ),
-                            const SizedBox(height: 26),
-                            const Text(
-                              'Our Services',
-                              style: TextStyle(
-                                fontSize: 21,
-                                fontWeight: FontWeight.w800,
-                                color: _textColor,
-                              ),
+                          ),
+                          const SizedBox(height: 14),
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOut,
+                            alignment: Alignment.topCenter,
+                            child: _ServiceGrid(
+                              items: shown,
+                              expanded: _expanded,
+                              onToggle: () =>
+                                  setState(() => _expanded = !_expanded),
                             ),
-                            const SizedBox(height: 14),
-                            AnimatedSize(
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeInOut,
-                              alignment: Alignment.topCenter,
-                              child: _ServiceGrid(
-                                items: shown,
-                                expanded: _expanded,
-                                onToggle: () =>
-                                    setState(() => _expanded = !_expanded),
-                              ),
+                          ),
+                          const SizedBox(height: 26),
+                          const Text(
+                            'Why Choose Us',
+                            style: TextStyle(
+                              fontSize: 21,
+                              fontWeight: FontWeight.w800,
+                              color: _textColor,
                             ),
-                            const SizedBox(height: 26),
-                            const Text(
-                              'Why Choose Us',
-                              style: TextStyle(
-                                fontSize: 21,
-                                fontWeight: FontWeight.w800,
-                                color: _textColor,
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            const _TrustStrip(),
-                            const SizedBox(height: 22),
-                            _OfferCard(
-                              onTap: () =>
-                                  _openBooking(context, _categories.first),
-                            ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 14),
+                          const _TrustStrip(),
+                          const SizedBox(height: 22),
+                          _OfferCard(
+                            onTap: () =>
+                                _openBooking(context, _categories.first),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -436,14 +434,36 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
+          Stack(
+            children: [
+              IconButton(
+                onPressed: () {
+                  // TODO: notifications page kholein
+                },
+                icon: const Icon(Icons.notifications_rounded,
+                    size: 30, color: Colors.white),
+              ),
+              Positioned(
+                right: 12,
+                top: 10,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _headerTop, width: 1.5),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 }
-// ---------------------------------------------------------------------------
-//  HERO BANNER
-// ---------------------------------------------------------------------------
+
 class _HeroBanner extends StatelessWidget {
   const _HeroBanner({required this.onTap, required this.height});
   final VoidCallback onTap;
