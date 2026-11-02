@@ -1,10 +1,7 @@
 import 'package:cleaning/app_data.dart';
-<<<<<<< HEAD
-=======
 import 'admin_config.dart'; // adminLogout(), adminLoginEmail (folder alag ho to path badlo)
 import 'package:cleaning/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
->>>>>>> 552025e (Update Cleaning App)
 import 'package:flutter/material.dart';
 
 class AdminHomePage extends StatefulWidget {
@@ -28,14 +25,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
   static const _red = Color(0xFFFF4D4F);
   static const _blue = Color(0xFF4DA3FF);
 
-<<<<<<< HEAD
-  void _open(String filter, [Booking? booking]) =>
-      widget.onOpenBookings?.call(filter, booking);
-
-  Color _statusColor(String s) {
-    switch (s) {
-      case 'Completed':
-=======
   // SAB users ki bookings, Firestore se live (pehle sirf local list thi)
   late final Stream<List<Booking>> _stream = BookingStore.allStream();
 
@@ -169,7 +158,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
     switch (s) {
       case 'Completed':
       case 'Confirmed':
->>>>>>> 552025e (Update Cleaning App)
         return _green;
       case 'Cancelled':
         return _red;
@@ -178,15 +166,11 @@ class _AdminHomePageState extends State<AdminHomePage> {
     }
   }
 
-<<<<<<< HEAD
-  String _statusLabel(String s) => s == 'Upcoming' ? 'Pending' : s;
-=======
   String _labelOf(Booking b) {
     if (b.status == 'Completed') return 'Completed';
     if (b.status == 'Cancelled') return 'Cancelled';
     return b.confirmed ? 'Confirmed' : 'Pending';
   }
->>>>>>> 552025e (Update Cleaning App)
 
   String _pct(int part, int total) =>
       total == 0 ? '0%' : '${(part * 100 / total).round()}%';
@@ -249,12 +233,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
   // ---------------- booking tile (tap -> that booking) ----------------
   Widget _bookingTile(Booking b) {
-<<<<<<< HEAD
-    final c = _statusColor(b.status);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => _open('All', b),
-=======
     final c = _statusColor(_labelOf(b));
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -262,7 +240,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
       // (Pending/Confirmed/Completed/Cancelled) ka filter lagta hai aur wo
       // booking highlight hoti hai
       onTap: () => _open(_labelOf(b), b),
->>>>>>> 552025e (Update Cleaning App)
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -317,11 +294,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: c.withAlpha(120)),
               ),
-<<<<<<< HEAD
-              child: Text(_statusLabel(b.status),
-=======
               child: Text(_labelOf(b),
->>>>>>> 552025e (Update Cleaning App)
                   style: TextStyle(
                       color: c, fontSize: 11, fontWeight: FontWeight.w700)),
             ),
@@ -333,17 +306,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    return Scaffold(
-      backgroundColor: _bg,
-      body: SafeArea(
-        child: ValueListenableBuilder<List<Booking>>(
-          valueListenable: BookingStore.items,
-          builder: (context, all, _) {
-            int count(String s) => all.where((b) => b.status == s).length;
-            final total = all.length;
-            final pending = count('Upcoming');
-=======
     // Admin ki apni profile (login wale account se)
     final admin = FirebaseAuth.instance.currentUser;
     final adminName = _nameOf(admin);
@@ -376,40 +338,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
             // Pending = jo abhi admin ne confirm nahi ki
             final pending =
                 all.where((b) => b.status == 'Upcoming' && !b.confirmed).length;
->>>>>>> 552025e (Update Cleaning App)
             final done = count('Completed');
             final cancelled = count('Cancelled');
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               children: [
-<<<<<<< HEAD
-                // ---- top bar ----
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: _purple.withAlpha(40),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.dashboard_rounded,
-                          color: _purple, size: 20),
-                    ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text('Dashboard',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800)),
-                    ),
-                    IconButton(
-                      onPressed: () => _open('All'),
-                      tooltip: 'Search bookings',
-                      icon: const Icon(Icons.search_rounded,
-                          color: Colors.white),
-=======
                 // ---- top bar: admin ki profile ----
                 Row(
                   children: [
@@ -435,7 +369,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
                                   color: _muted, fontSize: 12.5)),
                         ],
                       ),
->>>>>>> 552025e (Update Cleaning App)
                     ),
                   ],
                 ),
@@ -555,11 +488,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     ),
                   )
                 else
-<<<<<<< HEAD
-                  ...all.map((b) => Padding(
-=======
                   ...all.take(10).map((b) => Padding(
->>>>>>> 552025e (Update Cleaning App)
                         padding: const EdgeInsets.only(bottom: 10),
                         child: _bookingTile(b),
                       )),
@@ -570,8 +499,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
       ),
     );
   }
-<<<<<<< HEAD
-=======
 }
 
 /// Login wale admin ka naam (displayName, warna email ka pehla hissa)
@@ -673,5 +600,4 @@ class _AdminAvatar extends StatelessWidget {
       ),
     );
   }
->>>>>>> 552025e (Update Cleaning App)
 }

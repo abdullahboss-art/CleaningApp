@@ -399,19 +399,8 @@ class _Header extends StatelessWidget {
         ? user!.displayName!.trim()
         : 'Welcome';
 
-<<<<<<< HEAD
-    // DEBUG: photo kyun nahi aa rahi? Console me dekho (kaam hone ke baad hata dena)
-    debugPrint('AVATAR photoURL=${user?.photoURL} | providers=' +
-        (user?.providerData ?? const <UserInfo>[])
-            .map((p) => '${p.providerId}:${p.photoURL}')
-            .join(', '));
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 14, 14, 20),
-=======
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
->>>>>>> 552025e (Update Cleaning App)
       child: Row(
         children: [
           GestureDetector(
@@ -447,42 +436,11 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-<<<<<<< HEAD
-          Stack(
-            children: [
-              IconButton(
-                onPressed: () {
-                  // TODO: notifications page kholein
-                },
-                icon: const Icon(Icons.notifications_rounded,
-                    size: 30, color: Colors.white),
-              ),
-              Positioned(
-                right: 12,
-                top: 10,
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: Colors.redAccent,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: _headerTop, width: 1.5),
-                  ),
-                ),
-              ),
-            ],
-          ),
-=======
->>>>>>> 552025e (Update Cleaning App)
         ],
       ),
     );
   }
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> 552025e (Update Cleaning App)
 // ---------------------------------------------------------------------------
 //  HERO BANNER
 // ---------------------------------------------------------------------------
