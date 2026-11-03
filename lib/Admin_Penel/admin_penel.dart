@@ -1,5 +1,6 @@
 import 'package:cleaning/app_data.dart';
 import 'admin_config.dart'; // adminLogout(), adminLoginEmail (folder alag ho to path badlo)
+import 'package:cleaning/Admin_Penel/AdminBookingDetailsPage.dart'; // AdminBookingDetailsPage
 import 'package:cleaning/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -240,9 +241,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        // Tap: Bookings tab khulta hai, usi booking ki category ka filter
-        // lagta hai aur wo booking highlight hoti hai
-        onTap: () => _open(_labelOf(b), b),
+        // Tap: seedha us booking ki detail page khulta hai
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => AdminBookingDetailsPage(booking: b),
+          ),
+        ),
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
