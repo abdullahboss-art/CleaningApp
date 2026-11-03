@@ -53,6 +53,10 @@ class _SplashScreenState extends State<SplashScreen>
     parent: _intro,
     curve: const Interval(0.3, 0.85, curve: Curves.easeOut),
   );
+  late final Animation<double> _bottomFade = CurvedAnimation(
+    parent: _intro,
+    curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+  );
 
   // dots + wave ke liye
   late final AnimationController _pulse = AnimationController(
@@ -229,108 +233,122 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
 
-            // ---- logo + name + tagline ----
-            Positioned(
-              left: 24,
-              right: 24,
-              top: size.height * 0.53,
-              child: Column(
-                children: [
-                  FadeTransition(
-                    opacity: _logoFade,
-                    child: ScaleTransition(
-                      scale: _logoScale,
-                      child: Image.asset(
-                        'assets/images/Logo.png',
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, e, __) {
-                          debugPrint('Logo.png load nahi hua: $e');
-                          return const Icon(
-                            Icons.home_rounded,
-                            size: 90,
-                            color: _accent,
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  FadeTransition(
-                    opacity: _textFade,
+            // ---- CONTENT: ek hi Column, isliye kuch overlap nahi hota ----
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, box) {
+                  final h = box.maxHeight;
+                  final logo = (h * 0.13).clamp(72.0, 100.0).toDouble();
+                  final name = (h * 0.055).clamp(32.0, 42.0).toDouble();
+                  final tag = (h * 0.025).clamp(15.0, 19.0).toDouble();
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
                     child: Column(
                       children: [
-                        RichText(
-                          textAlign: TextAlign.center,
-                          text: const TextSpan(
-                            style: TextStyle(
-                              fontSize: 42,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.2,
+                        const Spacer(flex: 6),
+
+                        // logo + name + tagline
+                        FadeTransition(
+                          opacity: _logoFade,
+                          child: ScaleTransition(
+                            scale: _logoScale,
+                            child: Image.asset(
+                              'assets/images/Logo.png',
+                              width: logo,
+                              height: logo,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, e, __) {
+                                debugPrint('Logo.png load nahi hua: $e');
+                                return Icon(
+                                  Icons.home_rounded,
+                                  size: logo * 0.9,
+                                  color: _accent,
+                                );
+                              },
                             ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        FadeTransition(
+                          opacity: _textFade,
+                          child: Column(
                             children: [
-                              TextSpan(
-                                text: 'Spark',
-                                style: TextStyle(color: Colors.white),
+                              RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
+                                  style: TextStyle(
+                                    fontSize: name,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.2,
+                                  ),
+                                  children: const [
+                                    TextSpan(
+                                      text: 'Spark',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    TextSpan(
+                                      text: 'Clean',
+                                      style: TextStyle(color: _accent),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              TextSpan(
-                                text: 'Clean',
-                                style: TextStyle(color: _accent),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Clean spaces. Clear minds.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: _hint,
+                                  fontSize: tag,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.2,
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Clean spaces. Clear minds.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: _hint,
-                            fontSize: 19,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.2,
+
+                        const Spacer(flex: 1),
+
+                        // status text + dots
+                        FadeTransition(
+                          opacity: _bottomFade,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Preparing your fresh start...',
+                                style: TextStyle(
+                                  color: Colors.white.withAlpha(235),
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              AnimatedBuilder(
+                                animation: _pulse,
+                                builder: (_, __) => _Dots(t: _pulse.value),
+                              ),
+                            ],
                           ),
                         ),
+
+                        const SizedBox(height: 26),
+
+                        // patli line + neeche 1% -> 100%
+                        FadeTransition(
+                          opacity: _bottomFade,
+                          child: _LineLoader(percent: _percent),
+                        ),
+
+                        const SizedBox(height: 46),
                       ],
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
-            ),
-
-            // ---- text + dots ----
-            Positioned(
-              left: 24,
-              right: 24,
-              bottom: 130,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Preparing your fresh start...',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  AnimatedBuilder(
-                    animation: _pulse,
-                    builder: (_, __) => _Dots(t: _pulse.value),
-                  ),
-                ],
-              ),
-            ),
-
-            // ---- patli line + neeche 1% -> 100% ----
-            Positioned(
-              left: 28,
-              right: 28,
-              bottom: 56,
-              child: _LineLoader(percent: _percent),
             ),
           ],
         ),
@@ -406,32 +424,50 @@ class _LineLoader extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-//  3 dots (ek ek karke roshan hote hain)
+//  3 dots: smooth wave (ek ke baad ek upar uthte, bade aur roshan hote hain)
 // ---------------------------------------------------------------------------
 class _Dots extends StatelessWidget {
   const _Dots({required this.t});
-  final double t;
+  final double t; // 0..1 (loop)
 
   @override
   Widget build(BuildContext context) {
-    final active = (t * 3).floor().clamp(0, 2);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(3, (i) {
-        final on = i == active;
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 6),
-          width: 11,
-          height: 11,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: on ? _barStart : _barEnd.withAlpha(150),
-            boxShadow: on
-                ? [BoxShadow(color: _barEnd.withAlpha(200), blurRadius: 10)]
-                : null,
-          ),
-        );
-      }),
+    return SizedBox(
+      height: 26, // bounce ke liye jagah, kisi aur cheez se takra nahi hota
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: List.generate(3, (i) {
+          // har dot thora late: wave jaisa effect
+          final phase = (t - i * 0.16) * 2 * math.pi;
+          final s = (math.sin(phase - math.pi / 2) + 1) / 2; // 0..1
+
+          final size = 8 + 5 * s;
+          final lift = 8 * s;
+          final color = Color.lerp(_barEnd.withAlpha(140), _barStart, s)!;
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Transform.translate(
+              offset: Offset(0, -lift),
+              child: Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color,
+                  boxShadow: [
+                    BoxShadow(
+                      color: _barEnd.withAlpha((40 + 170 * s).round()),
+                      blurRadius: 4 + 10 * s,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
     );
   }
 }
