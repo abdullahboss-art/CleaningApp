@@ -259,51 +259,33 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   SizedBox(height: gap + 6),
 
-                                  // ---- social ----
+                                  // ---- social (sirf Google) ----
                                   const Text(
                                     'or continue with',
                                     style:
                                         TextStyle(color: _hint, fontSize: 12.5),
                                   ),
                                   const SizedBox(height: 14),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: _SocialButton(
-                                          label: 'Google',
-                                          enabled: !_loading,
-                                          icon: Image.asset(
-                                            'assets/images/Google_image.png',
-                                            height: 22,
-                                            errorBuilder: (_, __, ___) =>
-                                                const Text(
-                                              'G',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.w800,
-                                              ),
-                                            ),
-                                          ),
-                                          onTap: _googleLogin,
+                                  _SocialButton(
+                                    label: 'Google',
+                                    enabled: !_loading,
+                                    icon: Image.asset(
+                                      'assets/images/Google_image.png',
+                                      height: 22,
+                                      errorBuilder: (_, __, ___) =>
+                                          const Text(
+                                        'G',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w800,
                                         ),
                                       ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: _SocialButton(
-                                          label: 'Apple',
-                                          enabled: true,
-                                          icon: const Icon(Icons.apple,
-                                              size: 26, color: Colors.white),
-                                          onTap: () {
-                                            // Apple sign-in abhi nahi (pehle bhi nahi tha)
-                                          },
-                                        ),
-                                      ),
-                                    ],
+                                    ),
+                                    onTap: _googleLogin,
                                   ),
 
-                                  // ---- Sign Up (ab Google ke bilkul neeche) ----
+                                  // ---- Sign Up (Google ke bilkul neeche) ----
                                   SizedBox(height: gap + 6),
                                   Wrap(
                                     alignment: WrapAlignment.center,
@@ -469,7 +451,7 @@ class _LoginButton extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-//  Dark Google / Apple button
+//  Dark Google button (full width)
 // ---------------------------------------------------------------------------
 class _SocialButton extends StatelessWidget {
   const _SocialButton({
@@ -488,32 +470,35 @@ class _SocialButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Opacity(
       opacity: enabled ? 1 : 0.55,
-      child: Material(
-        color: _field,
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
+      child: SizedBox(
+        width: double.infinity,
+        child: Material(
+          color: _field,
           borderRadius: BorderRadius.circular(14),
-          onTap: enabled ? onTap : null,
-          child: Container(
-            height: 52,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _fieldBorder, width: 1.2),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                icon,
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: enabled ? onTap : null,
+            child: Container(
+              height: 52,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: _fieldBorder, width: 1.2),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  icon,
+                  const SizedBox(width: 10),
+                  Text(
+                    'Continue with $label',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
