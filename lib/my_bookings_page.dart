@@ -172,12 +172,82 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
     _wasActive = active;
   }
 
+  // Date picker ko dark theme dene ke liye
+  Widget _dateTheme(BuildContext context, Widget? child) {
+    final base = Theme.of(context);
+
+    return Theme(
+      data: base.copyWith(
+        colorScheme: const ColorScheme.dark(
+          primary: _primary,
+          onPrimary: Colors.white,
+          surface: _card,
+          onSurface: Colors.white,
+        ),
+        dialogTheme: DialogThemeData(backgroundColor: _card),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: _accent,
+            textStyle:
+                const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          ),
+        ),
+        datePickerTheme: DatePickerThemeData(
+          backgroundColor: _card,
+          surfaceTintColor: Colors.transparent,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          headerBackgroundColor: _card,
+          headerForegroundColor: Colors.white,
+          weekdayStyle:
+              const TextStyle(color: _sub, fontWeight: FontWeight.w600),
+          dayForegroundColor: WidgetStateColor.resolveWith((st) {
+            if (st.contains(WidgetState.disabled)) return Colors.white30;
+            return Colors.white;
+          }),
+          dayBackgroundColor: WidgetStateColor.resolveWith(
+            (st) => st.contains(WidgetState.selected)
+                ? _primary
+                : Colors.transparent,
+          ),
+          todayForegroundColor: WidgetStateProperty.all(_accent),
+          todayBorder: const BorderSide(color: _accent, width: 1.3),
+          yearForegroundColor: WidgetStateProperty.all(Colors.white),
+          yearBackgroundColor: WidgetStateColor.resolveWith(
+            (st) => st.contains(WidgetState.selected)
+                ? _primary
+                : Colors.transparent,
+          ),
+          dividerColor: _border,
+          cancelButtonStyle: TextButton.styleFrom(foregroundColor: _accent),
+          confirmButtonStyle: TextButton.styleFrom(foregroundColor: _accent),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: _bg,
+            labelStyle: const TextStyle(color: _sub),
+            hintStyle: const TextStyle(color: Colors.white38),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: _border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: _primary, width: 1.5),
+            ),
+          ),
+        ),
+      ),
+      child: child!,
+    );
+  }
+
   Future<void> _reschedule(Booking b) async {
     final d = await showDatePicker(
       context: context,
       initialDate: DateTime.now().add(const Duration(days: 1)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: _dateTheme, // dark theme
     );
     if (d == null) return;
     final time = b.date.contains('•') ? b.date.split('•').last.trim() : '';
