@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const adminEmails = [
   'abdullahmusharraf576@gmail.com',
+   'Saadvmi612@gmail.com'
   'admin@gmail.com',
 ];
 // admin@gmail.com + ye password dalne par seedha admin panel
