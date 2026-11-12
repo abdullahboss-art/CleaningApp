@@ -1,3 +1,5 @@
+
+
 import 'package:cleaning/Admin_Penel/Buttom.dart';
 import 'package:cleaning/Admin_Penel/admin_config.dart';
 import 'package:cleaning/app_colors.dart';
@@ -54,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
   // Google / email login ke baad: admin hai ya user
   Future<void> _routeAfterLogin(User? user) async {
     final u = user ?? FirebaseAuth.instance.currentUser;
-    final admin = isAdminUser(u);
+    final admin = await isAdminUser(u);
     debugPrint('LOGIN EMAILS: ${emailsOf(u)}  -> admin=$admin');
     await setAdminSession(false); // purana password-admin flag hatao
     if (!mounted) return;
