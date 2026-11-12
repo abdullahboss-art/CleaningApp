@@ -148,7 +148,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     debugPrint('SPLASH: adminSession=$adminSession emails=${emailsOf(user)}');
 
-    if (adminSession || isAdminUser(user)) {
+    if (adminSession || await isAdminUser(user)) {
       return const HomeShell();
     } else if (user != null) {
       return const MainShell();
